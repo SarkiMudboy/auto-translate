@@ -8,10 +8,48 @@ tracking = False
 data_dict = {}
 
 
-def print_text(data):
-	for key, value in data.items():
+def paragraph_closed(paragraph):
 
-		print(key+ " : " + value)
+	reverse_index = -1
+	if paragraph[reverse_index] == ' ':
+		while paragraph[reverse_index] == ' ':
+			reverse_index -= 1
+
+	if paragraph[reverse_index] != '.' and paragraph[reverse_index].isalpha():
+		return False
+
+	return True
+
+
+
+
+def is_discontinued(line):
+
+	global data_dict
+
+	character = line[0]
+
+	if character.islower():
+
+		last_entry = list(data_dict.keys())[-1]
+		entry_paragraph = data_dict[last_entry]
+		if 'footnote' not in last_entry and not paragraph_closed(entry_paragraph):
+			# print(line)
+			data_dict[last_entry] += ' ' + line
+			return True
+
+	return False
+
+
+def print_text(data):
+
+	with open('parsed text.txt', 'w') as f:
+
+		for key, value in data.items():
+
+			f.write(key + ' : ' + value + '\n')
+
+		f.close()
 
 def check_if_page_num(line):
 	try:
@@ -69,9 +107,12 @@ def handle_footnotes(line):
 			data_dict[f'footnote{footnote_count}'] = match_text + remnant_string
 			tracking = True
 			return splitted_paragraph[0]
-		elif tracking:
-			data_dict[f'footnote{footnote_count}'] += line
-			return None
+
+	if tracking:
+
+		data_dict[f'footnote{footnote_count}'] += line
+
+		return None
 		
 	return line
 
@@ -89,10 +130,10 @@ def reflow(infile):
 			line = line.strip('\n')
 
 			if line:
-
+				# print(line[0])
 				if check_if_page_num(line):	
 					line = handle_footnotes(line)
-					if line:
+					if line and not is_discontinued(line):
 						data_dict[str(paragraph_count)] = line
 						paragraph_count += 1
 				else:
