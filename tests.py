@@ -14,6 +14,35 @@ append_line = {
 tracking = False
 footnote_count = 0
 
+footnote_integer_regex = re.compile(r"[a-zA-Z]+\.(.)*(\d)+$")
+
+
+def handle_text_chunk(line):
+
+	global paragraph_count
+	global data_dict
+
+	if line != '':
+		last_character, index = crawl_spaces(line)
+		if last_character == '-':
+			data_dict[str(paragraph_count)] += line
+		else:
+			if is_roman_number(line.strip(' ')):
+				paragraph_count += 1
+				data_dict[str(paragraph_count)] = ''
+			else:
+				data_dict[str(paragraph_count)] += ' ' + line
+
+
+def check_footnote_integer(line, index):
+	line = line[:index]
+	match = footnote_integer_regex.search(line)
+
+	if match:
+		return True
+
+	return False
+
 
 def print_text(data):
 
@@ -60,6 +89,7 @@ def handle_footnotes(line):
 
 	global footnote_count
 	global tracking
+	footnote_markers = ['•', '"', '*']
 
 	stripped_line = line.strip(' ')
 	if is_roman_number(stripped_line):
@@ -78,7 +108,7 @@ def handle_footnotes(line):
 				data_dict[f'footnote{footnote_count}'] += ' ' + line
 			return True
 
-		elif first_character == '•' or first_character == '"':
+		elif first_character in footnote_markers:
 			if not tracking:
 				footnote_count += 1
 				data_dict[f'footnote{footnote_count}'] = line
@@ -97,8 +127,6 @@ def clean_up(line):
 
 	append = False
 
-
-
 	if append_line['append'] and paragraph_count > 0:
 
 		last_entry = list(data_dict.keys())[-1]
@@ -107,6 +135,8 @@ def clean_up(line):
 			last_entry = list(data_dict.keys())[-2]
 
 		if append_line['spaced']:
+			# if paragraph_count == 272:
+			# 	print(data_dict[last_entry])
 			data_dict[last_entry] += ' ' + line
 		else:
 			hyphen_index = append_line['index']
@@ -115,6 +145,13 @@ def clean_up(line):
 		append = True	
 
 	last_character, index = crawl_spaces(line)
+
+	# if paragraph_count == 272:
+	# 	print(line)
+
+	if check_footnote_integer(line, index):
+		append_line['append'] = False
+		return append
 
 	if last_character == '-' or last_character != '.':
 
@@ -142,19 +179,24 @@ def parse_text(infile):
 	global paragraph_count
 	global data_dict
 
-	# with open(infile) as file:
 	with open(infile, 'r', errors='ignore', encoding='utf-8') as source:
+
 		for line in source.readlines():
+
 			line = line.strip('\n')
-			if line != '':
-				if not handle_footnotes(line):
-					cleaned = clean_up(line)
-					if not cleaned:
-						data_dict[str(paragraph_count)] = line
-						paragraph_count += 1
-		# print_text(data_dict)
-		for key, value in data_dict.items():
-			print(key + ': ' + value)
+
+			if paragraph_count > 227:
+				handle_text_chunk(line)
+				pass
+			else:
+				if line != '' and not handle_footnotes(line) and not clean_up(line):	
+					paragraph_count += 1
+					data_dict[str(paragraph_count)] = line
+
+			if line.strip(' ') == "LXVI":
+				break
+							
+		print_text(data_dict)
 
 
 if __name__ == '__main__':
