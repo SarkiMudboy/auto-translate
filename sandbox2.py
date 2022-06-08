@@ -21,8 +21,6 @@ def paragraph_closed(paragraph):
 	return True
 
 
-
-
 def is_discontinued(line):
 
 	global data_dict
