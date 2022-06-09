@@ -119,7 +119,6 @@ def handle_footnotes(line):
 	return False
 
 
-
 def clean_up(line):
 
 	global data_dict
@@ -135,8 +134,6 @@ def clean_up(line):
 			last_entry = list(data_dict.keys())[-2]
 
 		if append_line['spaced']:
-			# if paragraph_count == 272:
-			# 	print(data_dict[last_entry])
 			data_dict[last_entry] += ' ' + line
 		else:
 			hyphen_index = append_line['index']
@@ -145,9 +142,6 @@ def clean_up(line):
 		append = True	
 
 	last_character, index = crawl_spaces(line)
-
-	# if paragraph_count == 272:
-	# 	print(line)
 
 	if check_footnote_integer(line, index):
 		append_line['append'] = False
@@ -184,19 +178,20 @@ def parse_text(infile):
 		for line in source.readlines():
 
 			line = line.strip('\n')
+			if is_roman_number(line.strip(' ')):
+				print(line)
+		# 	if paragraph_count > 227:
+		# 		handle_text_chunk(line)
+		# 		pass
+		# 	else:
+		# 		if line != '' and not handle_footnotes(line) and not clean_up(line):	
+		# 			paragraph_count += 1
+		# 			data_dict[str(paragraph_count)] = line
 
-			if paragraph_count > 227:
-				handle_text_chunk(line)
-				pass
-			else:
-				if line != '' and not handle_footnotes(line) and not clean_up(line):	
-					paragraph_count += 1
-					data_dict[str(paragraph_count)] = line
-
-			if line.strip(' ') == "LXVI":
-				break
+		# 	if line.strip(' ') == "LXVI":
+		# 		break
 							
-		print_text(data_dict)
+		# print_text(data_dict)
 
 
 if __name__ == '__main__':
