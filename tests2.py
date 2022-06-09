@@ -19,6 +19,12 @@ start_new_line = False
 
 footnote_pattern = re.compile(r'^(\d)+[\s][a-zA-Z]+')
 
+def convert_to_integer(integer):
+    try:
+        integer = int(integer)      
+    except ValueError:
+        return False
+    return True
 
 def reset_append():
     return {
@@ -100,7 +106,7 @@ def clean_up(line):
         'spaced':False,
         'index': None
         }
-        
+
     if start_new_line:
         start_new_line = False
         return start_new_line
@@ -144,11 +150,7 @@ def handle_footnotes(line):
 
 def parse_text(infile):
 
-    global paragraph_count
-    global data_dict
-    global start_parse
-    global start_new_line
-    global append_line
+    global append_line, tracking, start_new_line, start_parse, data_dict, paragraph_count
 
     with open(infile, 'r', errors='ignore', encoding='utf-8') as source:
 
@@ -158,6 +160,8 @@ def parse_text(infile):
 
             if line.strip(' ') == "LXVI":
                 start_parse = True
+
+            # if convert_to_integer(line.stri)
 
             if start_parse:
                 if line == '':
