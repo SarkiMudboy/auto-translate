@@ -19,6 +19,16 @@ start_new_line = False
 
 footnote_pattern = re.compile(r'^(\d)+[\s][a-zA-Z]+')
 
+def print_text(data):
+
+    with open('german parsed text second part.txt', 'w', encoding='utf-8') as f:
+
+        for key, value in data.items():
+
+            f.write(key + ' : ' + value + '\n')
+
+        f.close()
+
 def convert_to_integer(integer):
     try:
         integer = int(integer)      
@@ -159,9 +169,16 @@ def parse_text(infile):
             line = line.strip('\n')
 
             if line.strip(' ') == "LXVI":
+                data_dict['title'] = ''
                 start_parse = True
 
-            # if convert_to_integer(line.stri)
+            if convert_to_integer(line.strip(' ')) or convert_to_integer(line.strip(' ').strip('.')):
+                continue
+
+            if start_parse and paragraph_count < 24:
+                paragraph_count += 1
+                data_dict['title'] += line
+                continue
 
             if start_parse:
                 if line == '':
@@ -174,8 +191,7 @@ def parse_text(infile):
                     paragraph_count += 1
                     data_dict[str(paragraph_count)] = line
 
-        for key, value in data_dict.items():
-            print(key + ': ' + value)
+        print_text(data_dict)
 
 
 if __name__ == '__main__':
