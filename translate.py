@@ -11,12 +11,7 @@ def translate_text(text, translator, source_language, target_language):
 
 	result = translator.translate(text, src=sl[0], dest=tl[0])
 
-	print(result.src)
-	print(result.dest)
-	print(result.origin)
-	print(result.text)
-	print(result.pronunciation)
-
+	return result.text
 
 translator = Translator()
 translate_text("1. Партия и класс", translator, 'russian', 'english')

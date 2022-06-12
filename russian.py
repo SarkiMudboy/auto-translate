@@ -2,7 +2,7 @@ import re
 
 crylic_pattern = re.compile(r'[\u0400-\u04FF]')
 footnote_pattern = re.compile(r'^[•|*]+[\s]*(-|•)')
-# broken_word_pattern 
+broken_word_pattern = re.compile(r"[\u0400-\u04FF][­][\s][\u0400-\u04FF]")
 
 data_dict = dict()
 paragraph_count = 0
@@ -14,6 +14,14 @@ append_line = {
 	'spaced':False,
 	'index': None
 	}
+
+def handle_broken_words(line):
+	match = broken_word_pattern.findall(line)
+	if match:
+		for word in match:
+			resewn_word = word.replace('­ ', '')
+			line = line.replace(word, resewn_word)
+	return line
 
 def crawl_spaces(line, pos='end'):
 
@@ -41,8 +49,9 @@ def handle_footnotes(line):
 
 	if last_character in end_char:
 		if last_character == '-':
-			# print('>>>', line)
 			line = line[:index]
+
+	line = handle_broken_words(line)
 
 	if tracking:
 
@@ -74,6 +83,8 @@ def clean_text(line):
 	global append_line
 
 	append = False
+
+	line = handle_broken_words(line)
 
 	if append_line['append'] and paragraph_count > 0:
 
@@ -113,43 +124,6 @@ def clean_text(line):
 
 	return append
 
-	# global data_dict, append
-
-	# last_character, index = crawl_spaces(line)
-	# match = crylic_pattern.search(last_character)
-	# end_char = ['-', ',']
-
-	# if data_dict:
-
-	# 	last_entry = list(data_dict.keys())[-1]
-
-	# 	if 'footnote' in last_entry:
-	# 		last_entry = list(data_dict.keys())[-2]
-
-	# 	if append:
-	# 		data_dict[last_entry] += line
-	# 		append = False 
-
-	# 	if match or last_character in end_char:
-
-	# 		if last_character == '-':
-	# 			line = line[:index]
-
-	# 		append = True
-
-	# 		data_dict[last_entry] += line
-
-	# 		return True
-
-	# 	elif last_character == '.' and append:
-
-	# 		data_dict[last_entry] += line
-	# 		append = False
-
-	# 		return True
-			
-	# return False
-
 
 def parse_text(infile):
 
@@ -164,12 +138,9 @@ def parse_text(infile):
 			if line != '' and not handle_footnotes(line):
 
 				if not clean_text(line):
-
+					line = handle_broken_words(line)
 					data_dict[str(paragraph_count)] = line
 					paragraph_count += 1
-
-			if paragraph_count > 500:
-				break
 
 		for key, value in data_dict.items():
 			print(key + ':' + value)

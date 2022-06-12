@@ -1,5 +1,6 @@
 import re
 import fileinput
+from scripts import parse_to_json
 
 footnote_pattern = re.compile(r'(\d+|\*)[\t]+([a-zA-Z]|\«)+')
 footnote_index = 0
@@ -137,7 +138,7 @@ def reflow(infile):
 				else:
 					tracking = False
 
-		print_text(data_dict)
+		parse_to_json(data_dict)
 
 
 if __name__ == '__main__':
