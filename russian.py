@@ -1,4 +1,5 @@
 import re
+from scripts import parse_to_json
 
 crylic_pattern = re.compile(r'[\u0400-\u04FF]')
 footnote_pattern = re.compile(r'^[•|*]+[\s]*(-|•)')
@@ -142,8 +143,7 @@ def parse_text(infile):
 					data_dict[str(paragraph_count)] = line
 					paragraph_count += 1
 
-		for key, value in data_dict.items():
-			print(key + ':' + value)
+		parse_to_json(data_dict, 'russian')
 
 
 if __name__ == '__main__':
