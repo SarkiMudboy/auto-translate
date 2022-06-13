@@ -1,5 +1,6 @@
 import re
 import sys
+from scripts import parse_to_json
 
 sys.stdin.reconfigure(encoding='utf-8')
 sys.stdout.reconfigure(encoding='utf-8')
@@ -191,7 +192,7 @@ def parse_text(infile):
                     paragraph_count += 1
                     data_dict[str(paragraph_count)] = line
 
-        print_text(data_dict)
+        parse_to_json(data_dict, 'german-02')
 
 
 if __name__ == '__main__':

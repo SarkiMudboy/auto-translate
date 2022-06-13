@@ -5,8 +5,11 @@ from scripts import parse_to_json
 footnote_pattern = re.compile(r'(\d+|\*)[\t]+([a-zA-Z]|\«)+')
 footnote_index = 0
 footnote_count = 0
+paragraph_count = 0
 tracking = False
 data_dict = {}
+
+acronyms = False
 
 
 def paragraph_closed(paragraph):
@@ -115,21 +118,44 @@ def handle_footnotes(line):
 		
 	return line
 
+def check_acronyms(line):
+
+	global data_dict, acronyms, paragraph_count
+
+	end = False
+
+	if line == "Liste des principaux sigles ":
+		data_dict[str(paragraph_count)] = ''
+		acronyms = True
+
+	elif line == "Avant-propos ":
+		end = True
+		acronyms = False
+
+	elif not acronyms:
+		return False
+	
+	data_dict[str(paragraph_count)] += line + '\n'
+
+	if end:
+		paragraph_count += 1
+
+	return True
+
 
 def reflow(infile):
 
 	global data_dict
 	global tracking
-	paragraph_string = ''
-	paragraph_count = 0
+	global paragraph_count
 
 	with open(infile, 'r', errors='ignore') as source:
 
 		for line in source.readlines():
 			line = line.strip('\n')
 
-			if line:
-				# print(line[0])
+			if line and not check_acronyms(line):
+				
 				if check_if_page_num(line):	
 					line = handle_footnotes(line)
 					if line and not is_discontinued(line):
@@ -138,7 +164,7 @@ def reflow(infile):
 				else:
 					tracking = False
 
-		parse_to_json(data_dict)
+		parse_to_json(data_dict, 'french')
 
 
 if __name__ == '__main__':

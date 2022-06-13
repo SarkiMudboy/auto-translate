@@ -1,5 +1,6 @@
 import re
 import sys
+from scripts import parse_to_json
 
 sys.stdin.reconfigure(encoding='utf-8')
 sys.stdout.reconfigure(encoding='utf-8')
@@ -178,20 +179,18 @@ def parse_text(infile):
 		for line in source.readlines():
 
 			line = line.strip('\n')
-			if is_roman_number(line.strip(' ')):
-				print(line)
-		# 	if paragraph_count > 227:
-		# 		handle_text_chunk(line)
-		# 		pass
-		# 	else:
-		# 		if line != '' and not handle_footnotes(line) and not clean_up(line):	
-		# 			paragraph_count += 1
-		# 			data_dict[str(paragraph_count)] = line
 
-		# 	if line.strip(' ') == "LXVI":
-		# 		break
+			if paragraph_count > 227:
+				handle_text_chunk(line)
+			else:
+				if line != '' and not handle_footnotes(line) and not clean_up(line):	
+					paragraph_count += 1
+					data_dict[str(paragraph_count)] = line
+
+			if line.strip(' ') == "LXVI":
+				break
 							
-		# print_text(data_dict)
+		parse_to_json(data_dict, 'german-01')
 
 
 if __name__ == '__main__':
