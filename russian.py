@@ -143,7 +143,13 @@ def parse_text(infile):
 					data_dict[str(paragraph_count)] = line
 					paragraph_count += 1
 
-		parse_to_json(data_dict, 'russian')
+
+
+			if paragraph_count == 20:
+				break
+		# parse_to_json(data_dict, 'russian')
+		for key, value in data_dict.items():
+			print(key +':' + value)
 
 
 if __name__ == '__main__':

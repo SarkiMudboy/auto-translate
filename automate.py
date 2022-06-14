@@ -7,6 +7,33 @@ from handle_word import Doc
 paragraph_count = 0
 data_dict = {}
 
+
+def handle_lengthy_text(text_string):
+
+	n = 5000
+
+	if len(text_string) > n:
+
+		chunks = [text_string[i:i+n] for i in range(0, len(text_string), n)]
+		
+		return chunks
+
+	return False
+
+def handle_translation(text, translator, source_lang, target_lang, doc):
+
+	global data_dict, paragraph_count
+
+	translated_text = translate_text(text, translator, source_lang, target_lang)
+
+	doc.add_to_table(text, translated_text)
+
+	data_dict[str(paragraph_count)] = [text, translated_text]
+	paragraph_count += 1
+
+	return doc
+
+
 def automate(lang_file):
 
 	global paragraph_count, data_dict
@@ -21,20 +48,25 @@ def automate(lang_file):
 		translator = Translator()
 		for key, text in data.items():
 
-			translated_text = translate_text(text, translator, 'russian', 'english')
+			chunks = handle_lengthy_text(text)
 
-			output_document.add_to_table(text, translated_text)
+			if chunks:
 
-			data_dict[str(paragraph_count)] = [text, translated_text]
-			paragraph_count += 1
+				for chunk in chunks:
 
-			if key == '188':
+					output_document = handle_translation(chunk, translator, 'german', 'english', output_document)
+			else:
+
+				output_document = handle_translation(text, translator, 'german', 'english', output_document)
+			
+
+			if key == '28':
 				break
 
-		output_document.save('trans-russian')
+		output_document.save('trans-german')
 		# print(data_dict)
 
-automate('russian.json')
+automate('german-01.json')
 
 
 
