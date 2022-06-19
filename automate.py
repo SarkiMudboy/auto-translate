@@ -3,6 +3,7 @@ import translate
 from translate import translate_text
 from googletrans import Translator
 from handle_word import Doc
+from json.decoder import JSONDecodeError 
 
 paragraph_count = 0
 data_dict = {}
@@ -33,6 +34,12 @@ def handle_translation(text, translator, source_lang, target_lang, doc):
 
 	return doc
 
+def test(lang_file):
+	with open(lang_file) as json_file:
+		data = json.load(json_file)
+
+		return data
+
 
 def automate(lang_file):
 
@@ -42,31 +49,36 @@ def automate(lang_file):
 	output_document = Doc()
 	table = output_document.create_table()
 	
-	with open(lang_file) as json_file:
-		data = json.load(json_file)
+	with open(lang_file, 'r', encoding='utf-8', errors='ignore') as json_file:
+
+		try:
+			data = json.load(json_file)
+		except JSONDecodeError:
+			data = test(lang_file)
 
 		translator = Translator()
-		for key, text in data.items():
 
+		for key, text in data.items():
+			
 			chunks = handle_lengthy_text(text)
 
 			if chunks:
 
 				for chunk in chunks:
 
-					output_document = handle_translation(chunk, translator, 'german', 'english', output_document)
+					output_document = handle_translation(chunk, translator, 'russian', 'english', output_document)
 			else:
 
-				output_document = handle_translation(text, translator, 'german', 'english', output_document)
+				output_document = handle_translation(text, translator, 'russian', 'english', output_document)
 			
 
-			if key == '28':
+			if key == '180':
 				break
 
-		output_document.save('trans-german')
-		# print(data_dict)
+		output_document.save('trans-russian')
+		print('document saved!')
 
-automate('german-01.json')
+automate('russian.json')
 
 
 

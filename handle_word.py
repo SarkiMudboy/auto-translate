@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 from docx import Document
 
 class Doc:
@@ -17,7 +19,7 @@ class Doc:
 
 		data_row[0].text = lang_text
 		data_row[1].text = trans
-		
+
 	def save(self, filename):
 
 		# save to file
