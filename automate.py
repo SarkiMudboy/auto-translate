@@ -8,6 +8,27 @@ from json.decoder import JSONDecodeError
 paragraph_count = 0
 data_dict = {}
 
+def split_dict(test_dict, start):
+
+	length = 500
+
+	stop = start + length
+
+	dict_list = list(test_dict.items())
+
+	start_index = None
+	stop_index = None
+
+	for index, tup in enumerate(dict_list):
+		if str(start) == tup[0]:
+			start_index = index
+		elif str(stop) == tup[0]:
+			stop_index = index
+
+	dict_chunk = dict(dict_list[start_index:stop_index])
+
+	return dict_chunk
+
 
 def handle_lengthy_text(text_string):
 
@@ -56,29 +77,29 @@ def automate(lang_file):
 		except JSONDecodeError:
 			data = test(lang_file)
 
+		data = split_dict(data, 500)
+
 		translator = Translator()
 
 		for key, text in data.items():
-			
+		
 			chunks = handle_lengthy_text(text)
 
 			if chunks:
 
 				for chunk in chunks:
 
-					output_document = handle_translation(chunk, translator, 'german', 'english', output_document)
+					output_document = handle_translation(chunk, translator, 'french', 'english', output_document)
 			else:
 
-				output_document = handle_translation(text, translator, 'german', 'english', output_document)
+				output_document = handle_translation(text, translator, 'french', 'english', output_document)
 			
 
-			if key == '19':
-				break
-
-		output_document.save('trans-german')
+		output_document.save('trans_french_02')
 		print('document saved!')
 
-automate('german-01.json')
+automate('french.json')
+
 
 
 
