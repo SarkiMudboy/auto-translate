@@ -66,19 +66,19 @@ def automate(lang_file):
 
 				for chunk in chunks:
 
-					output_document = handle_translation(chunk, translator, 'russian', 'english', output_document)
+					output_document = handle_translation(chunk, translator, 'german', 'english', output_document)
 			else:
 
-				output_document = handle_translation(text, translator, 'russian', 'english', output_document)
+				output_document = handle_translation(text, translator, 'german', 'english', output_document)
 			
 
-			if key == '180':
+			if key == '19':
 				break
 
-		output_document.save('trans-russian')
+		output_document.save('trans-german')
 		print('document saved!')
 
-automate('russian.json')
+automate('german-01.json')
 
 
 
