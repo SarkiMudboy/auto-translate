@@ -1,33 +1,20 @@
 import json
+import time
 import translate
 from translate import translate_text
 from googletrans import Translator
 from handle_word import Doc
-from json.decoder import JSONDecodeError 
+from json.decoder import JSONDecodeError
+from itertools import islice 
 
 paragraph_count = 0
-data_dict = {}
+language_data_dict = {}
 
-def split_dict(test_dict, start):
+def split_dict(data, SIZE=500):
 
-	length = 500
-
-	stop = start + length
-
-	dict_list = list(test_dict.items())
-
-	start_index = None
-	stop_index = None
-
-	for index, tup in enumerate(dict_list):
-		if str(start) == tup[0]:
-			start_index = index
-		elif str(stop) == tup[0]:
-			stop_index = index
-
-	dict_chunk = dict(dict_list[start_index:stop_index])
-
-	return dict_chunk
+    it = iter(data)
+    for i in range(0, len(data), SIZE):
+        yield {k:data[k] for k in islice(it, SIZE)}
 
 
 def handle_lengthy_text(text_string):
@@ -44,13 +31,13 @@ def handle_lengthy_text(text_string):
 
 def handle_translation(text, translator, source_lang, target_lang, doc):
 
-	global data_dict, paragraph_count
+	global language_data_dict, paragraph_count
 
 	translated_text = translate_text(text, translator, source_lang, target_lang)
 
 	doc.add_to_table(text, translated_text)
 
-	data_dict[str(paragraph_count)] = [text, translated_text]
+	language_data_dict[str(paragraph_count)] = [text, translated_text]
 	paragraph_count += 1
 
 	return doc
@@ -62,43 +49,59 @@ def test(lang_file):
 		return data
 
 
-def automate(lang_file):
+def automate(language_json_file):
 
-	global paragraph_count, data_dict
+	global paragraph_count, language_data_dict
 
 	output = {}
 	output_document = Doc()
 	table = output_document.create_table()
+
+	chunk_loop_count = 2
 	
-	with open(lang_file, 'r', encoding='utf-8', errors='ignore') as json_file:
+	with open(language_json_file, 'r', encoding='utf-8', errors='ignore') as json_file:
 
 		try:
-			data = json.load(json_file)
+			extracted_data = json.load(json_file)
 		except JSONDecodeError:
-			data = test(lang_file)
+			extracted_data = test(language_json_file)
 
-		data = split_dict(data, 500)
+		dict_chunk_list = []
 
-		translator = Translator()
+		for dict_chunk in split_dict(extracted_data):
 
-		for key, text in data.items():
-		
-			chunks = handle_lengthy_text(text)
+			dict_chunk_list.append(dict_chunk)
 
-			if chunks:
+		for chunk_to_tranlate in dict_chunk_list:
 
-				for chunk in chunks:
+			translator = Translator()
 
-					output_document = handle_translation(chunk, translator, 'french', 'english', output_document)
-			else:
+			for key, text in chunk_to_tranlate.items():
 
-				output_document = handle_translation(text, translator, 'french', 'english', output_document)
-			
+				if text:
+				
+					chunks = handle_lengthy_text(text)
 
-		output_document.save('trans_french_02')
-		print('document saved!')
+					if chunks:
 
-automate('french.json')
+						for chunk in chunks:
+
+							output_document = handle_translation(chunk, translator, 'german', 'english', output_document)
+					else:
+
+						output_document = handle_translation(text, translator, 'german', 'english', output_document)
+				
+
+			output_document.save('trans_german_0'+str(chunk_loop_count))
+			print('document saved!')
+
+			output_document = Doc()
+			table = output_document.create_table()
+
+			chunk_loop_count += 1
+			time.sleep(5 * 60)
+
+automate('german-02.json')
 
 
 
