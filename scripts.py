@@ -1,3 +1,5 @@
+'''parse the clean dictionary into a json file'''
+
 import json
 
 def parse_to_json(dictionary, file_name):
@@ -16,11 +18,8 @@ def parse_to_json(dictionary, file_name):
 	return success
 		
 	
-
-
 def parse_other_json(dictionary, file_name):
-
-	print('other one running....')	
+	
 	outfile = open(file_name + '.json', 'w')
 
 	json.dump(dictionary, outfile, indent=4)

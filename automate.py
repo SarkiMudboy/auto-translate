@@ -1,3 +1,6 @@
+'''Handles translation automation'''
+
+import sys
 import json
 import time
 import translate
@@ -7,17 +10,21 @@ from handle_word import Doc
 from json.decoder import JSONDecodeError
 from itertools import islice 
 
+# instantiates the lang dict
 paragraph_count = 0
 language_data_dict = {}
 
 def split_dict(data, SIZE=500):
+	'''splits dictionary into 500 elements'''
 
-    it = iter(data)
-    for i in range(0, len(data), SIZE):
-        yield {k:data[k] for k in islice(it, SIZE)}
+	it = iter(data)
+	for i in range(0, len(data), SIZE):
+		yield {k:data[k] for k in islice(it, SIZE)}
 
 
 def handle_lengthy_text(text_string):
+	'''splits the text into 500 words, returns splitted chunks
+	if length is longer than n, else return False'''
 
 	n = 5000
 
@@ -30,11 +37,14 @@ def handle_lengthy_text(text_string):
 	return False
 
 def handle_translation(text, translator, source_lang, target_lang, doc):
+	'''handles translation and table filling, returns the doc'''
 
 	global language_data_dict, paragraph_count
 
+	# translate
 	translated_text = translate_text(text, translator, source_lang, target_lang)
 
+	# add texts to table
 	doc.add_to_table(text, translated_text)
 
 	language_data_dict[str(paragraph_count)] = [text, translated_text]
@@ -43,23 +53,33 @@ def handle_translation(text, translator, source_lang, target_lang, doc):
 	return doc
 
 def test(lang_file):
+	'''opens json file without utf-8 encoding, return '''
 	with open(lang_file) as json_file:
 		data = json.load(json_file)
 
 		return data
 
 
-def automate(language_json_file):
+def automate(language_json_file, language):
+	'''opens the json file, parse to a python dictionary,
+	translates each text, creates and fills up the word doc'''
 
 	global paragraph_count, language_data_dict
+
+	# instantiates the word document
 
 	output = {}
 	output_document = Doc()
 	table = output_document.create_table()
 
-	chunk_loop_count = 2
+	chunk_loop_count = 1
 	
+	# open file
 	with open(language_json_file, 'r', encoding='utf-8', errors='ignore') as json_file:
+
+		# parse json file into a python dictionary,
+		# if a decoding error occurs, reopen the file
+		# without enforcing utf-8 encoding
 
 		try:
 			extracted_data = json.load(json_file)
@@ -68,17 +88,24 @@ def automate(language_json_file):
 
 		dict_chunk_list = []
 
+		# splits the dictionary into smaller dictionaries
 		for dict_chunk in split_dict(extracted_data):
 
 			dict_chunk_list.append(dict_chunk)
 
+		# iterates over each dict in the chunk list
 		for chunk_to_tranlate in dict_chunk_list:
 
+			# initiates the translator class
 			translator = Translator()
 
+			# iterates the dictionary, retreives each paragraph
 			for key, text in chunk_to_tranlate.items():
 
 				if text:
+
+					# spilts lenghty texts into chunks to prevent overloading the translate
+					# function, else translate full text
 				
 					chunks = handle_lengthy_text(text)
 
@@ -86,23 +113,44 @@ def automate(language_json_file):
 
 						for chunk in chunks:
 
-							output_document = handle_translation(chunk, translator, 'german', 'english', output_document)
+							output_document = handle_translation(chunk, translator, language, 'english', output_document)
 					else:
 
-						output_document = handle_translation(text, translator, 'german', 'english', output_document)
-				
+						output_document = handle_translation(text, translator, language, 'english', output_document)
 
-			output_document.save('trans_german_0'+str(chunk_loop_count))
-			print('document saved!')
+			# saves the file
+			trans_filename = f'trans_{language}_0{str(chunk_loop_count)}'
+			output_document.save(trans_filename)
+			print(f'{trans_filename} saved!')
 
+			# creates a new document
 			output_document = Doc()
 			table = output_document.create_table()
 
+			# increases the loop count and delays script for 2 minutes
 			chunk_loop_count += 1
-			time.sleep(5 * 60)
+			time.sleep(2 * 60)
 
-automate('german-02.json')
 
+if __name__ == '__main__':
+
+	automate('russian.json', 'russian')
+
+	source_file = None
+
+	# if script is called from the terminal, 
+	# check if extra parameter json file name
+	# is provided, else prompt user for filename.
+
+	if len(sys.argv) > 1:
+		source_file = sys.argv[1]
+	else:
+		print("enter the json file name...")
+
+	# if file is provided run automation script
+	if source_file:
+		lang = source_file.split('.')[0]
+		automate(source_file, lang)
 
 
 
