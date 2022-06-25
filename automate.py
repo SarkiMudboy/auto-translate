@@ -14,6 +14,14 @@ from itertools import islice
 paragraph_count = 0
 language_data_dict = {}
 
+# list of untranslated dictionary chunks
+text_to_translate = []
+
+# overall list
+dcl = []
+
+
+
 def split_dict(data, SIZE=500):
 	'''splits dictionary into 500 elements'''
 
@@ -60,11 +68,41 @@ def test(lang_file):
 		return data
 
 
+def translate_paragraph_texts(chunk_to_tranlate, translator, output_document, language):
+
+	global text_to_translate, dcl
+
+	# iterates the dictionary, retreives each paragraph
+	for key, text in chunk_to_tranlate.items():
+
+		if text:
+
+			# spilts lenghty texts into chunks to prevent overloading the translate
+			# function, else translate full text
+		
+			chunks = handle_lengthy_text(text)
+
+			if chunks:
+
+				for chunk in chunks:
+
+					output_document = handle_translation(chunk, translator, language, 'english', output_document)
+			else:
+
+				output_document = handle_translation(text, translator, language, 'english', output_document)
+
+	# removes the translated text from texts to be translated
+	text_to_translate.remove(chunk_to_tranlate)
+
+	# return the doc
+	return output_document
+
+
 def automate(language_json_file, language):
 	'''opens the json file, parse to a python dictionary,
 	translates each text, creates and fills up the word doc'''
 
-	global paragraph_count, language_data_dict
+	global paragraph_count, language_data_dict, text_to_translate
 
 	# instantiates the word document
 
@@ -73,6 +111,7 @@ def automate(language_json_file, language):
 	table = output_document.create_table()
 
 	chunk_loop_count = 1
+	trials = 0
 	
 	# open file
 	with open(language_json_file, 'r', encoding='utf-8', errors='ignore') as json_file:
@@ -93,48 +132,56 @@ def automate(language_json_file, language):
 
 			dict_chunk_list.append(dict_chunk)
 
+		# sets the overall dictionary list
+		text_to_translate = dict_chunk_list[:]
+
 		# iterates over each dict in the chunk list
 		for chunk_to_tranlate in dict_chunk_list:
 
 			# initiates the translator class
 			translator = Translator()
 
-			# iterates the dictionary, retreives each paragraph
-			for key, text in chunk_to_tranlate.items():
+			'''translates each chunk, if an error occurs it will attempt 4 more
+			trials'''
+			while text_to_translate and trials < 4:
 
-				if text:
+				try:
 
-					# spilts lenghty texts into chunks to prevent overloading the translate
-					# function, else translate full text
-				
-					chunks = handle_lengthy_text(text)
+					output_document = translate_paragraph_texts(chunk_to_tranlate, translator,
+					output_document, language)
 
-					if chunks:
+				except Exception as e:
+					trials += 1
+					print('An exception occured: ' + str(e),' Retrying...')
+					continue
 
-						for chunk in chunks:
+				trials = 0
+				break
 
-							output_document = handle_translation(chunk, translator, language, 'english', output_document)
-					else:
+			# if chunk translation success...
 
-						output_document = handle_translation(text, translator, language, 'english', output_document)
+			if trials == 0:
 
-			# saves the file
-			trans_filename = f'trans_{language}_0{str(chunk_loop_count)}'
-			output_document.save(trans_filename)
-			print(f'{trans_filename} saved!')
+				# saves the file
+				trans_filename = f'trans_{language}_0{str(chunk_loop_count)}'
+				output_document.save(trans_filename)
+				print(f'{trans_filename} saved!')
 
-			# creates a new document
-			output_document = Doc()
-			table = output_document.create_table()
+				# creates a new document
+				output_document = Doc()
+				table = output_document.create_table()
 
-			# increases the loop count and delays script for 2 minutes
-			chunk_loop_count += 1
-			time.sleep(2 * 60)
+				# increases the loop count and delays script for 2 minutes
+				chunk_loop_count += 1
+				time.sleep(2 * 60)
+
+			else:
+
+				# if not success, stop the script
+				break
 
 
 if __name__ == '__main__':
-
-	automate('russian.json', 'russian')
 
 	source_file = None
 

@@ -14,7 +14,10 @@ if __name__ == '__main__':
 	language = input('File language: ')
 
 	# cleans the file to prepare it for translation
+
+	print('cleaning...')
 	parsed_json_file = fix.clean_text(filepath, language)
 
 	# translate
+	print('translating...')
 	automate(parsed_json_file, language)
