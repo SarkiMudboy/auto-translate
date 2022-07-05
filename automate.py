@@ -21,7 +21,6 @@ text_to_translate = []
 dcl = []
 
 
-
 def split_dict(data, SIZE=500):
 	'''splits dictionary into 500 elements'''
 

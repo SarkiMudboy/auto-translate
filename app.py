@@ -1,7 +1,7 @@
 '''Obtains filepath and file language and runs the clean
 and automate scripts'''
 
-import fix
+import clean
 import json
 from automate import automate
 
@@ -16,7 +16,7 @@ if __name__ == '__main__':
 	# cleans the file to prepare it for translation
 
 	print('cleaning...')
-	parsed_json_file = fix.clean_text(filepath, language)
+	parsed_json_file = clean.clean_text(filepath, language)
 
 	# translate
 	print('translating...')
